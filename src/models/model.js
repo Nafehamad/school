@@ -59,7 +59,9 @@ const Semester =  sequelize.define('semesters', {
 const Grade =  sequelize.define('grades', {
     id:{
         type:Sequelize.INTEGER,
-        primaryKey:true
+        primaryKey:true,
+        autoIncrement: true,
+    
     },
     value:{
         type: Sequelize.FLOAT,
@@ -85,25 +87,17 @@ const Course =  sequelize.define('courses', {
         type: Sequelize.STRING,
         allowNull:false
     },
-    finished:{
-        type: Sequelize.BOOLEAN,
-        allowNull:true
-    },
 
 },{
     timestamps:true,
     freezeTableName: true
 });
 
-// PreCourse model
+//PreCourse model
 const PreCourse =  sequelize.define('PreCourses', {
     id:{
         type:Sequelize.INTEGER,
         primaryKey:true
-    },
-    name:{
-        type: Sequelize.STRING,
-        allowNull:false
     },
     
 },{
@@ -111,8 +105,26 @@ const PreCourse =  sequelize.define('PreCourses', {
     freezeTableName: true
 });
 
+//User courses
+const UserCourse = sequelize.define('userCourse', {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    finished: {
+        type: Sequelize.BOOLEAN,
+        allowNull:false,
+        defaultValue:false
+        
+    }
+},{
+        timestamps:true,
+        freezeTableName: true
+});
 
- //built table 
+
+ //built table by sequelizing all models
  (async () => {
     await sequelize.sync({ alter: true});
   })();
@@ -120,14 +132,16 @@ const PreCourse =  sequelize.define('PreCourses', {
   //set relation
   Semester.hasMany(User,{constraints: false});//one to many relation between users and semester
   User.belongsTo(Semester,{constraints: false});//one to many relation between users and semester
-  Grade.hasOne(Course);//one to one relation between grade and course
-  Course.belongsTo(Grade);//one to one relation between grade and course
   Course.hasMany(PreCourse);//one to many relation between course and preCourse
   PreCourse.belongsTo(Course);//one to many relation between course and preCourse
   Semester.hasMany(User);//one to many relation between users and semester
   User.belongsTo(Semester);//one to many relation between users and semester
   Semester.hasMany(Course);//one to many relation between course and semester
   Course.belongsTo(Semester);//one to many relation between course and semester
+  User.belongsToMany(Course, { through: UserCourse});//many to many relation between user and course
+  Course.belongsToMany(User, { through: UserCourse});//many to many relation between user and course
+  Grade.hasOne(UserCourse);//one to many relation between users and semester
+  UserCourse.belongsTo(Grade);//one to many relation between users and semester
 
 
 
@@ -137,5 +151,5 @@ export {
     Course,
     Grade,
     PreCourse,
-
-  }
+    UserCourse
+}

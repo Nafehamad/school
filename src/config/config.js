@@ -1,19 +1,20 @@
 
-
-
 var config={};
 const userRoles = config.userRoles = {
-    guest: 1,       
-    student: 2,        
-    teacher: 4,      
-    manager: 8   
+    studentandmanager: 1,       
+    teacherandmanager: 2, 
+    student:4,       
+    teacher: 8,      
+    manager: 16  
 }
 
 config.accessLevels = {
-    guest: userRoles.guest | userRoles.student | userRoles.teacher | userRoles.manager, 
-    student: userRoles.student | userRoles.manager,                    
-    teacher: userRoles.teacher | userRoles.manager,                                    
-    manager: userRoles.manager,                                                 
+    studentandmanager:userRoles.student | userRoles.manager,
+    teacherandmanager:userRoles.teacher| userRoles.manager,
+    student:userRoles.student,
+    teacher:userRoles.teacher,
+    manager: userRoles.manager,
+                                                    
 }
 
 export default config

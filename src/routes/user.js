@@ -7,33 +7,62 @@ import "@babel/polyfill"
 
 
 import { 
-  signUp,
-  login,
-  findAll,
-  findById,
-  deleteUser,
-  createSemester,
-  updateSemester,
-  signUpSemester } from '../controllers/users.controller';
+  signUp,login,
+  findAll,findById,
+  deleteUser,createSemester,
+  updateSemester,signUpSemester,
+  addCourse,addPreCourse,
+  getCourses,signUpCourse,
+  setGrade,setUserGrade,
+  getStudentCourse,resetPassword
+ } from '../controllers/users.controller';
 
 
-router.post('/signUp', passport.authenticate('jwt', { session: false }),// use jwt as strategy
-    allowOnly(config.accessLevels.manager,signUp )
-  );
-  router.get('/getUsers', passport.authenticate('jwt', { session: false  }),
-    allowOnly(config.accessLevels.manager, findAll)
-  );
-  router.get('/getUser/:id', passport.authenticate('jwt', { session: false  }),
-  allowOnly(config.accessLevels.manager, findById)
- );
- router.delete('/deleteUser/:id', passport.authenticate('jwt', { session: false  }),
-  allowOnly(config.accessLevels.manager, deleteUser)
- );
-router.post('/create', signUp);
+router.post('/signup', signUp);
+
 router.post('/login', login);
-router.post('/createSemester',createSemester)
-router.put('/updateSemester/:s_id',updateSemester)
-router.put('/signUpSemester', passport.authenticate('jwt', { session: false }),// use jwt as strategy
-    allowOnly(config.accessLevels.student,signUpSemester )
-  );
+
+router.get('/getUsers', passport.authenticate('jwt', { session: false  }),
+    allowOnly(config.accessLevels.manager, findAll));
+
+router.get('/getUser/:id', passport.authenticate('jwt', { session: false  }),
+    allowOnly(config.accessLevels.manager, findById));
+
+router.delete('/deleteUser/:id', passport.authenticate('jwt', { session: false  }),
+  allowOnly(config.accessLevels.manager, deleteUser));
+
+router.post('/createSemester',passport.authenticate('jwt', { session: false }),
+allowOnly(config.accessLevels.manager,createSemester));
+
+router.put('/updateSemester/:s_id',passport.authenticate('jwt', { session: false }),
+allowOnly(config.accessLevels.manager,updateSemester ));
+
+router.put('/signUpSemester', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.student,signUpSemester ));
+
+router.post('/addCourse', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.manager,addCourse ));
+
+router.post('/addPreCourse', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.manager,addPreCourse ));
+
+router.get('/getCourses', passport.authenticate('jwt', { session: false  }),
+  allowOnly(config.accessLevels.studentandmanager, getCourses)
+);
+router.post('/signUpCourse', passport.authenticate('jwt', { session: false  }),
+  allowOnly(config.accessLevels.student, signUpCourse)
+);
+router.post('/setGrade', passport.authenticate('jwt', { session: false  }),
+  allowOnly(config.accessLevels.teacher, setGrade)
+);
+router.put('/setUserGrade', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.teacher,setUserGrade ));
+
+router.get('/getStudentCourse', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.student,getStudentCourse ));
+
+router.put('/resetPassword', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.student,resetPassword));
+
+
 export default router;
