@@ -3,7 +3,8 @@ import bodyParser from 'body-parser';
 import UserRoutes from './routes/user';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import {User} from './models/model';
+import {User,AuthorizedUser} from './models/model';
+import jwt from 'jsonwebtoken';
 
 
 const app = express();
@@ -24,21 +25,25 @@ app.use(passport.initialize());
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();//how token extracted from the request
 opts.secretOrKey = 'secret';//use for signature
-passport.use(
-    new JwtStrategy(opts, (jwt_payload, done) => {
-      User.findAll({ where: { id: jwt_payload.id } })
-        .then(user => {
-          if (user.length) {
-            
-            return done(null, user);
-            
-          }
-          return done(null, false);
-        })
-        .catch(err => console.log(err));
-    })
-  );
 
+passport.use(
+  new JwtStrategy(opts, (jwt_payload, done) => {
+    
+    User.findAll({ where: { id: jwt_payload.id } })
+      .then(user => {
+        const x= AuthorizedUser.findOne({ where: { userId : user[0].dataValues.id } })
+          .then(x => {
+            if(x instanceof AuthorizedUser){
+              return done(null, user);
+            }
+            else{
+              return done(null, false);
+            }
+          })
+          .catch(err => console.log(err));
+      })
+  })
+);
 
 //routes
 app.use('/api/user', UserRoutes);

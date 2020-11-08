@@ -1,10 +1,12 @@
-import { Course, PreCourse, Semester, User, UserCourse, Grade } from '../models/model';
+import { Course, PreCourse, Semester, User, UserCourse, Grade, AuthorizedUser } from '../models/model';
 import jwt from 'jsonwebtoken';
-import passport from 'passport';
-import Sequelize, { where } from 'sequelize';
 import validateRegisterForm from '../validation/register';
 import validateLoginForm from '../validation/login';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import  sgMail from "@sendgrid/mail";
+dotenv.config();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 
 //SignUp
@@ -56,8 +58,8 @@ export async function signUp(req, res) {
 
 //Login
 export async function login(req, res) {
-  const { errors, isValid } = validateLoginForm(req.body);
 
+  const { errors, isValid } = validateLoginForm(req.body);
   if (!isValid) {
     return res.status(400).json(errors);
   }
@@ -69,13 +71,10 @@ export async function login(req, res) {
   })
     .then(user => {
       if (!user.length) {
-
         errors.email = 'User not found!';
         return res.status(404).json(errors);
       }
-
       const originalPassword = user[0].dataValues.password
-
       bcrypt.compare(password, originalPassword)
         .then(isMatch => {
           if (isMatch) {
@@ -84,18 +83,35 @@ export async function login(req, res) {
             jwt.sign(payload, 'secret', {
               expiresIn: '1d'
             }, (err, token) => {
-              res.json({
-                success: true,
-                token: 'Bearer ' + token,
-                role: user[0].dataValues.role
-              });
+              AuthorizedUser.findOne({where:{userId :user[0].dataValues.id}})
+              .then(user1 => {
+                if (!(user1 instanceof AuthorizedUser)) {
+                  const x = AuthorizedUser.create({ userId: user[0].dataValues.id, userToken: token })
+                  .then(x => {
+                    if (x instanceof AuthorizedUser) {
+                      res.json({
+                        success: true,
+                        token: 'Bearer ' + token,
+                        role: user[0].dataValues.role
+                      })
+                    }
+                  })
+                  .catch(err => console.log(err));
+                }
+                else{
+                  return res.status(200).json("You were logined");
+                }
+              })
+              .catch(err => console.log(err));
             });
           } else {
             errors.password = 'Password not correct';
             return res.status(400).json(errors);
           }
-        }).catch(err => console.log(err));
-    }).catch(err => res.status(500).json({ err }));
+        })
+        .catch(err => console.log(err));
+    }).
+    catch(err => res.status(500).json({ err }));
 };
 
 // get Users
@@ -278,18 +294,25 @@ export async function getCourses(req, res) {
     .catch(err => res.status(500).json({ err }));
 };
 
+
 //Sign up for courses
 export async function signUpCourse(req, res) {
   const userId = req.user[0].dataValues.id
   let { courseId } = req.body;
   try {
-    let checkdata = await UserCourse.findOne({ where: { courseId: req.body.courseId } });
+    let checkdata = await UserCourse.findOne({
+      where: {
+        courseId: req.body.courseId,
+        finished: 1 || null
+      }
+    });
     if (checkdata) {
       res.json({
-        message: "Already Exist",
+        message: "You finish this course",
         data: checkdata
       });
     } else {
+      UserCourse.destroy({ where: { courseId: courseId } })
       var checkpre = await PreCourse.findAll({
         attributes: ['id', 'courseId'],
         where: {
@@ -304,7 +327,7 @@ export async function signUpCourse(req, res) {
           res.json({
             success: true,
             message: "signUp Successfull",
-            data: createdata
+
           });
         }
       }
@@ -329,7 +352,7 @@ export async function signUpCourse(req, res) {
             res.json({
               success: true,
               message: "signUp Successfull",
-              data: done
+
             });
           }
         }
@@ -376,7 +399,7 @@ export async function setGrade(req, res) {
 }
 
 //assign grade to user
-export async function setUserGrade(req, res) {
+export async function setStudentGrade(req, res) {
 
   let { userId, courseId, gradeId, finished } = req.body;
 
@@ -449,4 +472,82 @@ export async function resetPassword(req, res) {
         })
       }
     }).catch(err => console.log(err));
+}
+
+//update profile
+export async function updateProfile(req, res) {
+  let { name, phone } = req.body;
+
+  User.update(
+    {
+      name,
+      phone
+    },
+    {
+      where: {
+        email: req.user[0].dataValues.email,
+
+      }
+    }
+  )
+    .then(user => res.status(200).json({ user }))
+    .catch(err => res.status(500).json({ err }));
+
+}
+
+//logout
+export async function logout(req, res) {
+
+  AuthorizedUser.destroy({ where: { userId: req.user[0].dataValues.id } })
+    .then(() => res.status(200).json({ msg: 'You are logged out' }))
+    .catch(err => res.status(500).json({ msg: 'Failed to delete!' }));
+
+}
+
+//forget
+export async function forget(req, res) {
+  function between(min, max) {  
+    return Math.floor(
+      Math.random() * (max - min) + min
+    )
+  }
+ const {email}=req.body
+ User.findOne({wher:{email: email}})
+ .then(user => {
+   if(user instanceof User){
+    var password = ""
+    var genPass = between(100000,2000000)
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(genPass.toString(), salt, (err, hash) => {
+        if (err) throw err
+        password = hash;
+        User.update({
+          password
+        },
+        {where:{
+             email:email
+        }})
+          .then(x => {
+            const msg = {
+              to: email,
+              from: 'nafeahammad90@gmail.com',
+              subject: 'Your New Password',
+              text: `This is Your Password ${genPass},Please Login Into App and Change it`,
+              html: `<strong>This is Your Password ${genPass} ,Please Login Into App and Change it</strong>`,
+            };
+            sgMail.send(msg).then(() => {
+              res.status(200).json("Message sent to your email")
+            }).catch((error) => {
+              console.log(error.response.body)
+              
+            })
+          })
+          .catch(err => {
+            res.status(500).json({err});
+          });
+      });
+    });
+
+   }
+ }).catch(()=> res.send(err))
 }

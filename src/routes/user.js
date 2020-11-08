@@ -13,8 +13,9 @@ import {
   updateSemester,signUpSemester,
   addCourse,addPreCourse,
   getCourses,signUpCourse,
-  setGrade,setUserGrade,
-  getStudentCourse,resetPassword
+  setGrade,setStudentGrade,
+  getStudentCourse,resetPassword,
+  updateProfile,logout,forget
  } from '../controllers/users.controller';
 
 
@@ -56,7 +57,7 @@ router.post('/setGrade', passport.authenticate('jwt', { session: false  }),
   allowOnly(config.accessLevels.teacher, setGrade)
 );
 router.put('/setUserGrade', passport.authenticate('jwt', { session: false }),
-    allowOnly(config.accessLevels.teacher,setUserGrade ));
+    allowOnly(config.accessLevels.teacher,setStudentGrade ));
 
 router.get('/getStudentCourse', passport.authenticate('jwt', { session: false }),
     allowOnly(config.accessLevels.student,getStudentCourse ));
@@ -64,5 +65,11 @@ router.get('/getStudentCourse', passport.authenticate('jwt', { session: false })
 router.put('/resetPassword', passport.authenticate('jwt', { session: false }),
     allowOnly(config.accessLevels.student,resetPassword));
 
+router.put('/updateProfile', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.student,updateProfile));
 
+router.get('/logout',passport.authenticate('jwt', { session: false }),
+allowOnly(config.accessLevels.all,logout ));
+
+router.post('/forget', forget);
 export default router;

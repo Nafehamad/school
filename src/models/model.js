@@ -114,9 +114,28 @@ const UserCourse = sequelize.define('userCourse', {
     },
     finished: {
         type: Sequelize.BOOLEAN,
-        allowNull:false,
-        defaultValue:false
+        allowNull:true,
         
+        
+    }
+},{
+        timestamps:true,
+        freezeTableName: true
+});
+
+const AuthorizedUser = sequelize.define('authorizedUser', {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    userId: {
+        type: Sequelize.INTEGER,
+        allowNull:false, 
+    },
+    userToken: {
+        type: Sequelize.STRING,
+        allowNull:false, 
     }
 },{
         timestamps:true,
@@ -126,7 +145,7 @@ const UserCourse = sequelize.define('userCourse', {
 
  //built table by sequelizing all models
  (async () => {
-    await sequelize.sync({ alter: true});
+    await sequelize.sync({ force: false});
   })();
 
   //set relation
@@ -151,5 +170,6 @@ export {
     Course,
     Grade,
     PreCourse,
-    UserCourse
+    UserCourse,
+    AuthorizedUser
 }
