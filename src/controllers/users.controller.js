@@ -1,10 +1,10 @@
-import { Course, PreCourse, Semester, User, UserCourse, Grade, AuthorizedUser } from '../models/model';
+import { Course, PreCourse, Semester, User, UserCourse, Grade, AuthorizedUser, VerifiedUser } from '../models/model';
 import jwt from 'jsonwebtoken';
 import validateRegisterForm from '../validation/register';
 import validateLoginForm from '../validation/login';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import  sgMail from "@sendgrid/mail";
+import sgMail from "@sendgrid/mail";
 dotenv.config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
@@ -39,18 +39,45 @@ export async function signUp(req, res) {
         role,
         SemesterId
       };
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if (err) throw err;
-          newUser.password = hash;
-          User.create(newUser)
-            .then(user => {
-              res.json({ user });
-            })
-            .catch(err => {
-              res.status(500).json({ err });
+      const payload = { id, name }; //
+      jwt.sign(payload, 'secret', {
+        expiresIn: '1d'
+      }, (err, token) => {
+        VerifiedUser.create({ userToken: token })
+          .then(userNotVerified => {
+            if (userNotVerified instanceof VerifiedUser) {
+              const msg = {
+                to: email,
+                from: 'nafeahammad90@gmail.com',
+                subject: 'Verified Your Email',
+                text: ` Use This Token {${token}} , To Verify Your Email `,
+                html: ` Use This Token<strong> ${token} </strong>, To Verify Your Email`,
+              };
+              sgMail.send(msg).then(() => {
+                res.status(200).json("Check Your Email to Verify It")
+              }).catch((error) => {
+                console.log('error')
+
+              })
+            }
+            bcrypt.genSalt(10, (err, salt) => {
+              bcrypt.hash(newUser.password, salt, (err, hash) => {
+                if (err) throw err;
+                newUser.password = hash;
+                User.create(newUser)
+                  .then(user => {
+
+                  })
+                  .catch(err => {
+                    res.status(500).json({ err });
+                  });
+              });
             });
-        });
+          })
+          .catch(err => {
+            res.status(500).json({ err });
+          });
+
       });
     }
   });
@@ -74,42 +101,63 @@ export async function login(req, res) {
         errors.email = 'User not found!';
         return res.status(404).json(errors);
       }
-      const originalPassword = user[0].dataValues.password
-      bcrypt.compare(password, originalPassword)
-        .then(isMatch => {
-          if (isMatch) {
-            const { id, name } = user[0].dataValues;
-            const payload = { id, name }; //jwt payload
-            jwt.sign(payload, 'secret', {
-              expiresIn: '1d'
-            }, (err, token) => {
-              AuthorizedUser.findOne({where:{userId :user[0].dataValues.id}})
-              .then(user1 => {
-                if (!(user1 instanceof AuthorizedUser)) {
-                  const x = AuthorizedUser.create({ userId: user[0].dataValues.id, userToken: token })
-                  .then(x => {
-                    if (x instanceof AuthorizedUser) {
-                      res.json({
-                        success: true,
-                        token: 'Bearer ' + token,
-                        role: user[0].dataValues.role
-                      })
+      if (user[0].dataValues.isVerified) {
+        const originalPassword = user[0].dataValues.password
+        bcrypt.compare(password, originalPassword)
+          .then(isMatch => {
+            if (isMatch) {
+              const { id, name } = user[0].dataValues;
+              const payload = { id, name }; //jwt payload
+              jwt.sign(payload, 'secret', {
+                expiresIn: 120
+              }, (err, token) => {
+                AuthorizedUser.findOne({ where: { userId: user[0].dataValues.id } })
+                  .then(user1 => {
+                    if ((user1 instanceof AuthorizedUser)) {
+
+                      AuthorizedUser.destroy({ where: { userId: user[0].dataValues.id } })
+                        .then(() => {
+                          AuthorizedUser.create({ userId: user[0].dataValues.id, userToken: token })
+                            .then(x => {
+                              if (x instanceof AuthorizedUser) {
+                                res.json({
+                                  success: true,
+                                  token: 'Bearer ' + token,
+                                  role: user[0].dataValues.role
+                                })
+                              }
+                            })
+                            .catch(err => console.log(err));
+                        })
+                        .catch(err => res.json({ err }))
+
+                    }
+                    else {
+                      const x = AuthorizedUser.create({ userId: user[0].dataValues.id, userToken: token })
+                        .then(x => {
+                          if (x instanceof AuthorizedUser) {
+                            res.json({
+                              success: true,
+                              token: 'Bearer ' + token,
+                              role: user[0].dataValues.role
+                            })
+                          }
+                        })
+                        .catch(err => console.log(err));
                     }
                   })
                   .catch(err => console.log(err));
-                }
-                else{
-                  return res.status(200).json("You were logined");
-                }
-              })
-              .catch(err => console.log(err));
-            });
-          } else {
-            errors.password = 'Password not correct';
-            return res.status(400).json(errors);
-          }
-        })
-        .catch(err => console.log(err));
+              });
+            } else {
+              errors.password = 'Password not correct';
+              return res.status(400).json(errors);
+            }
+          })
+          .catch(err => console.log(err));
+      }
+      else {
+        return res.json('You need to verified your email')
+      }
     }).
     catch(err => res.status(500).json({ err }));
 };
@@ -506,48 +554,77 @@ export async function logout(req, res) {
 
 //forget
 export async function forget(req, res) {
-  function between(min, max) {  
+  function between(min, max) {
     return Math.floor(
       Math.random() * (max - min) + min
     )
   }
- const {email}=req.body
- User.findOne({wher:{email: email}})
- .then(user => {
-   if(user instanceof User){
-    var password = ""
-    var genPass = between(100000,2000000)
-    bcrypt.genSalt(10, (err, salt) => {
-      bcrypt.hash(genPass.toString(), salt, (err, hash) => {
-        if (err) throw err
-        password = hash;
-        User.update({
-          password
-        },
-        {where:{
-             email:email
-        }})
-          .then(x => {
-            const msg = {
-              to: email,
-              from: 'nafeahammad90@gmail.com',
-              subject: 'Your New Password',
-              text: `This is Your Password ${genPass},Please Login Into App and Change it`,
-              html: `<strong>This is Your Password ${genPass} ,Please Login Into App and Change it</strong>`,
-            };
-            sgMail.send(msg).then(() => {
-              res.status(200).json("Message sent to your email")
-            }).catch((error) => {
-              console.log(error.response.body)
-              
-            })
-          })
-          .catch(err => {
-            res.status(500).json({err});
-          });
-      });
-    });
+  const { email } = req.body
+  User.findOne({ wher: { email: email } })
+    .then(user => {
+      if (user instanceof User) {
+        var password = ""
+        var genPass = between(100000, 2000000)
+        bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(genPass.toString(), salt, (err, hash) => {
+            if (err) throw err
+            password = hash;
+            User.update({
+              password
+            },
+              {
+                where: {
+                  email: email
+                }
+              })
+              .then(x => {
+                const msg = {
+                  to: email,
+                  from: 'nafeahammad90@gmail.com',
+                  subject: 'Your New Password',
+                  text: `This is Your Password ${genPass},Please Login Into App and Change it`,
+                  html: `<strong>This is Your Password ${genPass} ,Please Login Into App and Change it</strong>`,
+                };
+                sgMail.send(msg).then(() => {
+                  res.status(200).json("Message sent to your email")
+                }).catch((error) => {
+                  console.log(error.response.body)
 
-   }
- }).catch(()=> res.send(err))
+                })
+              })
+              .catch(err => {
+                res.status(500).json({ err });
+              });
+          });
+        });
+
+      }
+    }).catch(() => res.send(err))
+}
+
+
+//verify email
+export async function verifyEmail(req, res) {
+  const { email, userToken } = req.body
+  User.findOne({ wher: { email: email } })
+    .then(user => {
+      if (user instanceof User) {
+        if (user.dataValues.isVerified) {
+          return res.json('This email is verifieded')
+        }
+        else {
+          VerifiedUser.findOne({ where: { userToken: userToken } })
+            .then(() => {
+              User.update({ isVerified: true }, { where: { email: email } })
+                .then(() => {
+                  return res.status(200).json('Email verified correctly')
+                })
+                .catch(err => res.status(500).json({ err }))
+            })
+            .catch(err => res.status(500).json({ err }))
+        }
+      }
+    })
+    .catch(err => res.status(500).json({ err }))
+
 }

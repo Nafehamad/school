@@ -15,7 +15,7 @@ import {
   getCourses,signUpCourse,
   setGrade,setStudentGrade,
   getStudentCourse,resetPassword,
-  updateProfile,logout,forget
+  updateProfile,logout,forget,verifyEmail
  } from '../controllers/users.controller';
 
 
@@ -72,4 +72,6 @@ router.get('/logout',passport.authenticate('jwt', { session: false }),
 allowOnly(config.accessLevels.all,logout ));
 
 router.post('/forget', forget);
+
+router.post('/verifyEmail',verifyEmail)
 export default router;

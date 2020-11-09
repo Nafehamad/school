@@ -29,12 +29,14 @@ opts.secretOrKey = 'secret';//use for signature
 passport.use(
   new JwtStrategy(opts, (jwt_payload, done) => {
     
+    let flag = Date.now()+10 >= jwt_payload.exp* 1000
+    
     User.findAll({ where: { id: jwt_payload.id } })
       .then(user => {
         const x= AuthorizedUser.findOne({ where: { userId : user[0].dataValues.id } })
           .then(x => {
             if(x instanceof AuthorizedUser){
-              return done(null, user);
+               return done(null, user);
             }
             else{
               return done(null, false);
@@ -42,6 +44,7 @@ passport.use(
           })
           .catch(err => console.log(err));
       })
+    
   })
 );
 

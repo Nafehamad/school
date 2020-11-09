@@ -27,6 +27,12 @@ const User =  sequelize.define('users', {
     },
     role:{
         type: Sequelize.STRING,  
+    },
+    isVerified:{
+        type: Sequelize.BOOLEAN, 
+        allowNull:false,
+        defaultValue: false
+
     }
 },{
     timestamps:true,
@@ -142,6 +148,21 @@ const AuthorizedUser = sequelize.define('authorizedUser', {
         freezeTableName: true
 });
 
+const VerifiedUser = sequelize.define('verifiedUser', {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    userToken: {
+        type: Sequelize.STRING,
+        allowNull:false, 
+    }
+},{
+        timestamps:true,
+        freezeTableName: true
+});
+
 
  //built table by sequelizing all models
  (async () => {
@@ -171,5 +192,6 @@ export {
     Grade,
     PreCourse,
     UserCourse,
-    AuthorizedUser
+    AuthorizedUser,
+    VerifiedUser
 }
