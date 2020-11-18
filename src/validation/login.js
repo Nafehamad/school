@@ -3,8 +3,8 @@ import Validator from 'validator';
 
 function validateLoginForm(data) {
   let errors = {
-    email : '',
-    password : ''
+    email: '',
+    password: ''
   };
 
   if (!Validator.isEmail(data.email)) {
@@ -19,11 +19,11 @@ function validateLoginForm(data) {
     errors.password = 'Password is required';
   }
 
-  
-  
+
+
   return {
     errors,
-    isValid: errors.email == '' && errors.password =='' 
+    isValid: errors.email == '' && errors.password == ''
   };
 };
 

@@ -3,11 +3,11 @@ import Validator from 'validator';
 
 function validateRegisterForm(data) {
   let errors = {
-    email : '',
-    password : ''
+    email: '',
+    password: ''
   };
 
- if (!Validator.isLength(data.name, { min: 2, max: 30 })) {
+  if (!Validator.isLength(data.name, { min: 2, max: 30 })) {
     errors.name = 'Name must be between 2 and 30 character long';
   }
 
@@ -42,7 +42,7 @@ function validateRegisterForm(data) {
 
   return {
     errors,
-    isValid: errors.email == '' && errors.password =='' 
+    isValid: errors.email == '' && errors.password == ''
   };
 };
 
