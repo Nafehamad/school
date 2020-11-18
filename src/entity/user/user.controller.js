@@ -6,9 +6,7 @@ import validateRegisterForm from '../../validation/register';
 import validateLoginForm from '../../validation/login';
 import UsersRepository from './user.repository';
 import VerifiedUsersRepository from '../verifieduser/verifieduser.repository';
-import UserCourseRepository from '../usercourse/usercourse.repository';
-import PreCourseRepository from '../precourse/precourse.repository';
-import { Course, PreCourse, Semester, User, UserCourse, Grade, AuthorizedUser, VerifiedUser } from '../relation';
+import {  User, AuthorizedUser, VerifiedUser } from '../relation';
 import AuthorizedUserRepository from '../authorizeduser/authorizeduser.repository';
 var transaction;
 
