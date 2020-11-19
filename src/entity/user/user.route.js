@@ -12,9 +12,9 @@ import {
 
 const router = Router();
 
-//router.post('/user', signUp);
+router.post('/user', signUp);
 
-//router.get('/user', passport.authenticate('jwt', { session: false }),
+router.get('/user', passport.authenticate('jwt', { session: false }),
     allowOnly(config.accessLevels.manager, getAllUsers));
 
 router.get('/user/:id', passport.authenticate('jwt', { session: false }),

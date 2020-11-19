@@ -1,8 +1,9 @@
-import express from 'express';
-import bodyParser from 'body-parser';
 import passport from 'passport';
+import bodyParser from 'body-parser';
+import socket from 'socket.io';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { User, Semester, Course, PreCourse, AuthorizedUser, VerifiedUser, UserCourse, Grade } from './entity/relation';
+import express from 'express';
+import { User, AuthorizedUser } from './entity/relation';
 import UserRoutes from './entity/user/user.route';
 import CourseRoutes from './entity/course/course.route';
 import PreCourseRoutes from './entity/precourse/precourse.route';
@@ -58,4 +59,22 @@ app.use(GradeRoutes);
 app.use(UserCourseRoutes);
 
 
-export default app;
+
+var server = app.listen(process.env.PORT, function () {
+  console.log('server run on 8085');
+});
+
+app.use(express.static('public'));
+var io = socket(server);
+
+
+io.on('connection', function (socket) {
+  console.log('made socket connected');
+
+  socket.on('chat', function (data) {
+    io.sockets.emit('chat', data);
+  });
+});
+
+
+//export default app;

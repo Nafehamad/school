@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.js --exec babel-node",
+    "dev": "nodemon src/app.js --exec babel-node",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "nafe",
@@ -23,7 +23,8 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "sendgrid": "^5.2.3",
-    "sequelize": "^5.12.1"
+    "sequelize": "^5.12.1",
+    "socket.io": "^3.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
