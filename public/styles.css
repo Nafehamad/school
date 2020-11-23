@@ -10,7 +10,7 @@
 
 
 #output {
-    width: 50%;
+    width: 80%;
     height: 40px;
     margin: 10px;
     border: 1px solid; 
@@ -19,23 +19,4 @@
 
 
 
-input{
-    padding: 12px;
-    background: rgb(133, 116, 146);
-    border: 1 solid;
-    margin: 10px;
-    width: 50%;
-    background: #fff;
-    font-size: 16px;
-}
 
-button{
-    background: #1e9924;
-    color: #fff;
-    font-size: 16px;
-    border: 1 solid #829182;
-    margin: 10px;
-    padding: 12px;
-    width: 55%;
-   
-}

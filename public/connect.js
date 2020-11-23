@@ -1,19 +1,15 @@
-var socket = io.connect('http://localhost:8085');
+var socket = io.connect('http://localhost:8085/');
 
 
-var message = document.getElementById('message'),
-    btn = document.getElementById('send'),
-    output = document.getElementById('output');
+var output = document.getElementById('output');
 
 
-btn.addEventListener('click', function () {
-    socket.emit('chat', {
-        message: message.value,
+    socket.on('chat', function (data) {
+        output.innerHTML+=data.course+' course is available now \n\n';
     });
-    message.value = "";
-});
+    socket.on('connect',function(socket){
+        console.log("ok");
+    })
+    
 
 
-socket.on('chat', function (data) {
-    output.innerHTML += data.message +'  from server';
-});

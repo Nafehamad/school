@@ -5,12 +5,14 @@ import { allowOnly } from '../../services/checkPermision';
 import {
     getAllUsers, signUp, verifyEmail,
     login, getUser, deleteUser, logout, forget,
-    signUpSemester, signUpCourse, updateProfile,
+    signUpSemester, updateProfile,
     resetPassword
 } from './user.controller';
 
 
 const router = Router();
+
+
 
 router.post('/user', signUp);
 

@@ -1,9 +1,18 @@
+import socket from 'socket.io';
+import server from '../../app';
 import { sequelize } from '../../database/database';
 import CourseRepository from './course.repository';
 
 var transaction;
 
 export async function addCourse(req, res) {
+
+  const io = socket(server);
+  io.on('connection', function (socket) {
+    console.log('made socket connected');
+    io.sockets.emit('chat', { course: req.body.name });
+  })
+
   try {
     transaction = await sequelize.transaction();
     try {
@@ -34,6 +43,7 @@ export async function addCourse(req, res) {
   } catch (err) {
     if (transaction) await transaction.rollback();
   }
+
 };
 
 export async function getCourses(req, res) {

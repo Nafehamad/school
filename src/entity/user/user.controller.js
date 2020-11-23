@@ -29,7 +29,7 @@ export async function signUp(req, res) {
         let newUser = { id, name, email, password, phone, role, SemesterId };
         const payload = { id, name };
         jwt.sign(payload, 'secret', {
-          expiresIn: '1d'
+          expiresIn: 360
         }, (err, token) => {
           VerifiedUsersRepository.addUser(token)
             .then(userNotVerified => {
@@ -125,7 +125,7 @@ export async function login(req, res) {
                 const { id, name } = user[0].dataValues;
                 const payload = { id, name }; //jwt payload
                 jwt.sign(payload, 'secret', {
-                  expiresIn: 120
+                  expiresIn: 1440
                 }, (err, token) => {
                   AuthorizedUserRepository.findById(user[0].dataValues.id)
                     .then(user1 => {
