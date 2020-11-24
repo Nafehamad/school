@@ -31,8 +31,8 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();//how token extra
 opts.secretOrKey = 'secret';//use for signature
 
 passport.use(
-  new JwtStrategy(opts, (jwt_payload, done) => {
-
+  new JwtStrategy(opts, (jwt_payload, done ) => {
+    
     User.findAll({ where: { id: jwt_payload.id } })
       .then(user => {
         const x = AuthorizedUser.findOne({ where: { userId: user[0].dataValues.id } })
@@ -44,7 +44,7 @@ passport.use(
               return done(null, false);
             }
           })
-          .catch(err => console.log(err));
+          .catch(err => console.log(err));S
       })
 
   })

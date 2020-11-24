@@ -12,7 +12,8 @@ export const sequelize = new Sequelize('school', 'root', '', {
     acquire: 30000,
     idle: 10000
   },
-  logging: false
+  logging: false,
+  
 });
 
 sequelize.authenticate()

@@ -6,7 +6,7 @@ import validateRegisterForm from '../../validation/register';
 import validateLoginForm from '../../validation/login';
 import UsersRepository from './user.repository';
 import VerifiedUsersRepository from '../verifieduser/verifieduser.repository';
-import {  User, AuthorizedUser, VerifiedUser } from '../relation';
+import { User, AuthorizedUser, VerifiedUser } from '../relation';
 import AuthorizedUserRepository from '../authorizeduser/authorizeduser.repository';
 var transaction;
 
@@ -102,6 +102,8 @@ export async function verifyEmail(req, res) {
   }
 };
 
+
+
 //Login
 export async function login(req, res) {
   try {
@@ -125,14 +127,14 @@ export async function login(req, res) {
                 const { id, name } = user[0].dataValues;
                 const payload = { id, name }; //jwt payload
                 jwt.sign(payload, 'secret', {
-                  expiresIn: 1440
+                  expiresIn: 2880
                 }, (err, token) => {
                   AuthorizedUserRepository.findById(user[0].dataValues.id)
                     .then(user1 => {
                       if ((user1 instanceof AuthorizedUser)) {
-                        AuthorizedUserRepository.deleteById(user[0].dataValues.id)
+                          AuthorizedUserRepository.deleteById(user[0].dataValues.id)
                           .then(() => {
-                            AuthorizedUser.addAuth(user[0].dataValues.id, token)
+                            AuthorizedUserRepository.addAuth(user[0].dataValues.id, token)
                               .then(x => {
                                 if (x instanceof AuthorizedUser) {
                                   res.json({
