@@ -1,8 +1,9 @@
-import express from 'express';
-import bodyParser from 'body-parser';
 import passport from 'passport';
+import bodyParser from 'body-parser';
+import socket from 'socket.io';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { User, Semester, Course, PreCourse, AuthorizedUser, VerifiedUser, UserCourse, Grade } from './entity/relation';
+import express from 'express';
+import { User, AuthorizedUser } from './entity/relation';
 import UserRoutes from './entity/user/user.route';
 import CourseRoutes from './entity/course/course.route';
 import PreCourseRoutes from './entity/precourse/precourse.route';
@@ -30,8 +31,8 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();//how token extra
 opts.secretOrKey = 'secret';//use for signature
 
 passport.use(
-  new JwtStrategy(opts, (jwt_payload, done) => {
-
+  new JwtStrategy(opts, (jwt_payload, done ) => {
+    
     User.findAll({ where: { id: jwt_payload.id } })
       .then(user => {
         const x = AuthorizedUser.findOne({ where: { userId: user[0].dataValues.id } })
@@ -43,7 +44,7 @@ passport.use(
               return done(null, false);
             }
           })
-          .catch(err => console.log(err));
+          .catch(err => console.log(err));S
       })
 
   })
@@ -58,4 +59,11 @@ app.use(GradeRoutes);
 app.use(UserCourseRoutes);
 
 
-export default app;
+
+var server = app.listen(process.env.PORT, function () {
+  console.log('server run on 8085');
+});
+
+app.use(express.static('public'));
+
+export default server;

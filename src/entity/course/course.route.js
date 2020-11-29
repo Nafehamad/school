@@ -6,8 +6,9 @@ import { addCourse, getCourses, deleteCourse } from './course.controller';
 
 const router = Router();
 
-router.post('/course', passport.authenticate('jwt', { session: false }),
-    allowOnly(config.accessLevels.manager, addCourse));
+router.post('/course',addCourse);
+/*router.post('/course', passport.authenticate('jwt', { session: false }),
+    allowOnly(config.accessLevels.manager, addCourse));*/
 
 router.get('/course', passport.authenticate('jwt', { session: false }),
     allowOnly(config.accessLevels.manager, getCourses));
