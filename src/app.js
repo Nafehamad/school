@@ -53,8 +53,9 @@ app.use(SemesterRoutes);
 app.use(GradeRoutes);
 app.use(UserCourseRoutes);
 
-var server = app.listen(process.env.PORT, function () {
-  console.log('server run on 8085');
+const portt = process.env.PORT || 3000;
+var server = app.listen(portt, function () {
+  console.log(`server running in ${portt}`);
 });
 
 export default server;
