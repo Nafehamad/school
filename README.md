@@ -38,12 +38,13 @@ You'll need to run this app:
 * [mysql](https://github.com/mysqljs/mysql) - For modeling and mapping mysql data to javascript.
 * [socket](https://github.com/socketio/socket.io) - real time asending data.
 * [sequelise](https://github.com/sequelize/sequelize) - Sequelize is a promise-based Node.js ORM.
+* [babel](https://github.com/babel/babel) - Babel is a tool that helps you write code in the latest version of JavaScript. When your supported environments don't support certain   features natively, Babel will help you compile those features down to a supported version.
 
 # Application Structure
  **app.js** - The entry point to our application. This file defines our express server. It also requires the routes we'll be using in the application.<br>
  **config** - This folder contain require configuration.<br>
  **entity** - This include:
-  * **model**
-  * **route**
-  * **repository**
-  * **controller**
+  * **model** - This folder contains the schema definitions.<br>
+  * **route** - This folder contains the route definitions for our API.<br>
+  * **repository** - This folder contains functions that access database.<br>
+  * **controller** - This folder contains functions implementation.<br>
